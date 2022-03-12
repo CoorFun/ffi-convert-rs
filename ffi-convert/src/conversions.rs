@@ -87,6 +87,10 @@ pub trait CReprOf<T>: Sized + CDrop {
     fn c_repr_of(input: T) -> Result<Self, CReprOfError>;
 }
 
+pub trait CReprOfEnum<T>: Sized + CDropEnum {
+    fn c_repr_of(input: T) -> Result<(Self, *const libc::c_void), CReprOfError>;
+}
+
 #[derive(Error, Debug)]
 pub enum CDropError {
     #[error("unexpected null pointer")]
@@ -99,6 +103,10 @@ pub enum CDropError {
 /// managed by Rust.
 pub trait CDrop {
     fn do_drop(&mut self) -> Result<(), CDropError>;
+}
+
+pub trait CDropEnum {
+    fn do_drop(&self, data: *const libc::c_void) -> Result<(), CDropError>;
 }
 
 #[derive(Error, Debug)]
@@ -116,6 +124,10 @@ pub enum AsRustError {
 /// type and that an instance of the parametrized type can be created form this struct
 pub trait AsRust<T> {
     fn as_rust(&self) -> Result<T, AsRustError>;
+}
+
+pub trait AsRustEnum<T> {
+    fn as_rust(&self, data: *const libc::c_void) -> Result<T, AsRustError>;
 }
 
 #[derive(Error, Debug)]

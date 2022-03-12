@@ -2,6 +2,8 @@ use anyhow::{bail, Result};
 use ffi_convert::*;
 use std::ops::Range;
 
+mod r#enum;
+
 #[macro_export]
 macro_rules! generate_round_trip_rust_c_rust {
     ($func_name:ident, $rust_struct:ty, $c_struct:ty, $builder:block) => {
