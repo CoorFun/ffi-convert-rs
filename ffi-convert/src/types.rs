@@ -293,3 +293,25 @@ impl<U: CReprOfEnum<V>, V> CReprOf<V> for CEnum<U> {
         })
     }
 }
+
+impl<T> RawPointerConverter<CEnum<T>> for CEnum<T> {
+    fn into_raw_pointer(self) -> *const CEnum<T> {
+        convert_into_raw_pointer(self)
+    }
+
+    fn into_raw_pointer_mut(self) -> *mut CEnum<T> {
+        convert_into_raw_pointer_mut(self)
+    }
+
+    unsafe fn from_raw_pointer(
+        input: *const CEnum<T>,
+    ) -> Result<Self, UnexpectedNullPointerError> {
+        take_back_from_raw_pointer(input)
+    }
+
+    unsafe fn from_raw_pointer_mut(
+        input: *mut CEnum<T>,
+    ) -> Result<Self, UnexpectedNullPointerError> {
+        take_back_from_raw_pointer_mut(input)
+    }
+}
