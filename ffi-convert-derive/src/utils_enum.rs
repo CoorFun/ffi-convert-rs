@@ -12,7 +12,7 @@ pub fn parse_enum_cases(data: &syn::Data) -> Vec<Variant> {
 pub struct Variant<'a> {
     pub name: &'a syn::Ident,
     pub case_name: syn::Ident,
-    pub pointee: syn::Ident,
+    pub pointee: Option<syn::Ident>,
 }
 
 pub fn parse_variant(data: &syn::Variant) -> Variant {
@@ -35,9 +35,7 @@ pub fn parse_variant(data: &syn::Variant) -> Variant {
         .map(|attr| {
             attr.parse_args()
                 .expect("Could not parse attributes of case")
-        })
-        .ok_or_else(|| panic!("Expected case name on {:?}", name))
-        .unwrap();
+        });
 
     Variant { name, case_name, pointee }
 }

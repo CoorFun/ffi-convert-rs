@@ -33,6 +33,7 @@ pub struct CLaunchMenu {
 pub enum Meal {
     Breakfast(BreakfastMenu),
     Launch(LaunchMenu),
+    Dinner,
 }
 
 #[allow(non_camel_case_types)]
@@ -45,6 +46,8 @@ pub enum MEAL_TYPE {
     #[case(Launch)]
     #[pointee(CLaunchMenu)]
     LAUNCH = 2,
+    #[case(Dinner)]
+    DINNER = 3,
 }
 
 #[derive(Debug)]
@@ -92,5 +95,9 @@ mod tests {
         Meal::Launch(LaunchMenu {
             starter: 1.1
         })
+    });
+
+    generate_round_trip_rust_c_rust!(round_trip_meal_dinner, Meal, CMeal, {
+        Meal::Dinner
     });
 }

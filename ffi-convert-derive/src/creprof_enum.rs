@@ -14,9 +14,15 @@ pub fn impl_creprof_enum_macro(input: &syn::DeriveInput) -> TokenStream {
         .map(|case| {
             let Variant { name, case_name, pointee } = case;
 
-            quote!(
-                #target_type::#case_name(v) => (#enum_name::#name, #pointee::c_repr_of(v)?.into_raw_pointer() as *const _)
-            )
+            if let Some(pointee) = pointee {
+                quote!(
+                    #target_type::#case_name(v) => (#enum_name::#name, #pointee::c_repr_of(v)?.into_raw_pointer() as *const _)
+                )
+            } else {
+                quote!(
+                    #target_type::#case_name => (#enum_name::#name, std::ptr::null() as *const _)
+                )
+            }
         })
         .collect::<Vec<_>>();
 

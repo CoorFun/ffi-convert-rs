@@ -11,9 +11,15 @@ pub fn impl_cdrop_enum_macro(input: &syn::DeriveInput) -> TokenStream {
         .map(|case| {
             let Variant { name, pointee, .. } = case;
 
-            quote!(
-                #enum_name::#name => unsafe {#pointee::drop_raw_pointer(data as *const _)?}
-            )
+            if let Some(pointee) = pointee {
+                quote!(
+                    #enum_name::#name => unsafe {#pointee::drop_raw_pointer(data as *const _)?}
+                )
+            } else {
+                quote!(
+                    #enum_name::#name => {}
+                )
+            }
         })
         .collect::<Vec<_>>();
 

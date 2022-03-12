@@ -14,15 +14,21 @@ pub fn impl_asrust_enum_macro(input: &syn::DeriveInput) -> TokenStream {
         .map(|case| {
             let Variant { name, case_name, pointee } = case;
 
-            let conversion = quote!({
-                let ref_to_struct = unsafe { #pointee::raw_borrow(data as *const _)? };
-                let converted_struct = ref_to_struct.as_rust()?;
-                converted_struct
-            });
+            if let Some(pointee) = pointee {
+                let conversion = quote!({
+                    let ref_to_struct = unsafe { #pointee::raw_borrow(data as *const _)? };
+                    let converted_struct = ref_to_struct.as_rust()?;
+                    converted_struct
+                });
 
-            quote!(
-                #enum_name::#name => #target_type::#case_name(#conversion)
-            )
+                quote!(
+                    #enum_name::#name => #target_type::#case_name(#conversion)
+                )
+            } else {
+                quote!(
+                    #enum_name::#name => #target_type::#case_name
+                )
+            }
         })
         .collect::<Vec<_>>();
 
