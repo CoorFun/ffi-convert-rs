@@ -38,6 +38,7 @@ pub enum Meal {
     OnlyUsedInRust
 }
 
+#[repr(C)]
 #[allow(non_camel_case_types)]
 #[derive(Debug, AsRustEnum, CReprOfEnum, CDropEnum)]
 #[target_type(Meal)]
@@ -54,40 +55,12 @@ pub enum MEAL_TYPE {
     DINNER = 3,
 }
 
-#[derive(Debug)]
-pub struct CMeal {
-    ty: MEAL_TYPE,
-    data: *const libc::c_void
-}
-
-impl AsRust<Meal> for CMeal {
-    fn as_rust(&self) -> std::result::Result<Meal, AsRustError> {
-        Ok(self.ty.as_rust(self.data)?)
-    }
-}
-
-impl CDrop for CMeal {
-    fn do_drop(&mut self) -> std::result::Result<(), CDropError> {
-        Ok(())
-    }
-}
-
-impl CReprOf<Meal> for CMeal {
-    fn c_repr_of(input: Meal) -> Result<Self, CReprOfError> {
-        let (ty, data) = MEAL_TYPE::c_repr_of(input)?;
-        Ok(CMeal {
-            ty,
-            data
-        })
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use crate::generate_round_trip_rust_c_rust;
     use super::*;
 
-    generate_round_trip_rust_c_rust!(round_trip_meal_breakfast, Meal, CMeal, {
+    generate_round_trip_rust_c_rust!(round_trip_meal_breakfast, Meal, CEnum<MEAL_TYPE>, {
         Meal::Breakfast(BreakfastMenu {
             starter: "sausage".to_string(),
             dishes: 10,
@@ -95,13 +68,13 @@ mod tests {
         })
     });
 
-    generate_round_trip_rust_c_rust!(round_trip_meal_launch, Meal, CMeal, {
+    generate_round_trip_rust_c_rust!(round_trip_meal_launch, Meal, CEnum<MEAL_TYPE>, {
         Meal::Launch(LaunchMenu {
             starter: 1.1
         })
     });
 
-    generate_round_trip_rust_c_rust!(round_trip_meal_dinner, Meal, CMeal, {
+    generate_round_trip_rust_c_rust!(round_trip_meal_dinner, Meal, CEnum<MEAL_TYPE>, {
         Meal::Dinner
     });
 }

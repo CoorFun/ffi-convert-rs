@@ -265,3 +265,31 @@ impl<T> Drop for CRange<T> {
         let _ = self.do_drop();
     }
 }
+
+#[derive(Debug)]
+pub struct CEnum<T> {
+    ty: T,
+    data: *const libc::c_void
+}
+
+impl<U: AsRustEnum<V>, V> AsRust<V> for CEnum<U> {
+    fn as_rust(&self) -> std::result::Result<V, AsRustError> {
+        Ok(self.ty.as_rust(self.data)?)
+    }
+}
+
+impl<U: CDropEnum> CDrop for CEnum<U> {
+    fn do_drop(&mut self) -> std::result::Result<(), CDropError> {
+        self.ty.do_drop(self.data)
+    }
+}
+
+impl<U: CReprOfEnum<V>, V> CReprOf<V> for CEnum<U> {
+    fn c_repr_of(input: V) -> Result<Self, CReprOfError> {
+        let (ty, data) = U::c_repr_of(input)?;
+        Ok(Self {
+            ty,
+            data
+        })
+    }
+}
