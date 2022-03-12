@@ -34,12 +34,16 @@ pub enum Meal {
     Breakfast(BreakfastMenu),
     Launch(LaunchMenu),
     Dinner,
+
+    OnlyUsedInRust
 }
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, AsRustEnum, CReprOfEnum, CDropEnum)]
 #[target_type(Meal)]
 pub enum MEAL_TYPE {
+    #[default]
+    UNIMPLEMENTED = 0,
     #[case(Breakfast)]
     #[pointee(CBreakfastMenu)]
     BREAKFAST = 1,

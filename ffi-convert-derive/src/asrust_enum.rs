@@ -12,22 +12,30 @@ pub fn impl_asrust_enum_macro(input: &syn::DeriveInput) -> TokenStream {
     let enum_matches = parse_enum_cases(&input.data)
         .iter()
         .map(|case| {
-            let Variant { name, case_name, pointee } = case;
+            if case.is_default {
+                let Variant { name,.. } = case;
+                quote!(
+                    #enum_name::#name => Err(ffi_convert::AsRustError::UnknownEnumVariant)
+                )
+            } else {
+                let Variant { name, pointee,.. } = case;
+                let case_name = case.case_name.clone().expect("Non default variant should have a case name");
 
-            if let Some(pointee) = pointee {
-                let conversion = quote!({
+                if let Some(pointee) = pointee {
+                    let conversion = quote!({
                     let ref_to_struct = unsafe { #pointee::raw_borrow(data as *const _)? };
                     let converted_struct = ref_to_struct.as_rust()?;
                     converted_struct
                 });
 
-                quote!(
-                    #enum_name::#name => #target_type::#case_name(#conversion)
+                    quote!(
+                    #enum_name::#name => Ok(#target_type::#case_name(#conversion))
                 )
-            } else {
-                quote!(
-                    #enum_name::#name => #target_type::#case_name
+                } else {
+                    quote!(
+                    #enum_name::#name => Ok(#target_type::#case_name)
                 )
+                }
             }
         })
         .collect::<Vec<_>>();
@@ -35,9 +43,9 @@ pub fn impl_asrust_enum_macro(input: &syn::DeriveInput) -> TokenStream {
     quote!(
         impl AsRustEnum<#target_type> for #enum_name {
             fn as_rust(&self, data: *const libc::c_void) -> Result<#target_type, ffi_convert::AsRustError> {
-                Ok(match self {
+                match self {
                     #(#enum_matches, )*
-                })
+                }
             }
         }
     )

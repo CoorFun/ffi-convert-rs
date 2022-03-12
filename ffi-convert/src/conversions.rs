@@ -113,6 +113,8 @@ pub trait CDropEnum {
 pub enum AsRustError {
     #[error("unexpected null pointer")]
     NullPointer(#[from] UnexpectedNullPointerError),
+    #[error("Could not convert default C variant to rust")]
+    UnknownEnumVariant,
 
     #[error("could not convert string as it is not UTF-8: {}", .0)]
     Utf8Error(#[from] Utf8Error),

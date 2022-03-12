@@ -41,7 +41,8 @@ pub fn creprof_derive(token_stream: TokenStream) -> TokenStream {
     attributes(
         case,
         pointee,
-        target_type
+        target_type,
+        default
     )
 )]
 pub fn creprof_enum_derive(token_stream: TokenStream) -> TokenStream {
