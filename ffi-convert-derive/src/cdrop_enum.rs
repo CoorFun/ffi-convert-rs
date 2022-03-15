@@ -21,9 +21,17 @@ pub fn impl_cdrop_enum_macro(input: &syn::DeriveInput) -> TokenStream {
             let Variant { name, pointee, .. } = case;
 
             if let Some(pointee) = pointee {
-                quote!(
-                    #enum_name::#name => unsafe {#pointee::drop_raw_pointer(data as *const _)?}
-                )
+                let ty = pointee.ty.clone();
+
+                if pointee.is_string {
+                    quote!(
+                        #enum_name::#name => unsafe {std::ffi::CString::drop_raw_pointer(data as *const _)?}
+                    )
+                } else {
+                    quote!(
+                        #enum_name::#name => unsafe {#ty::drop_raw_pointer(data as *const _)?}
+                    )
+                }
             } else {
                 quote!(
                     #enum_name::#name => {}

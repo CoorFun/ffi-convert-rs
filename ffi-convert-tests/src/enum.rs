@@ -67,6 +67,7 @@ pub enum Meal {
     Launch(LaunchMenu),
     Dinner,
     NightSnack(NightSnakeMenu),
+    MidNightSnack(String),
 
     OnlyUsedInRust
 }
@@ -89,6 +90,9 @@ pub enum MEAL_TYPE {
     #[case(NightSnack)]
     #[pointee(CEnum::<NIGHT_SNAKE_MENU_TYPE>)]
     NIGHT_SNACK = 4,
+    #[case(MidNightSnack)]
+    #[pointee(libc::c_char)]
+    MID_NIGHT_SNACK = 5,
 }
 
 #[cfg(test)]
@@ -119,5 +123,9 @@ mod tests {
             description: "very long".to_string(),
             from_brittany: true,
         }))
+    });
+
+    generate_round_trip_rust_c_rust!(round_trip_meal_mid_night_snacke, Meal, CEnum<MEAL_TYPE>, {
+        Meal::MidNightSnack("CocaCola".to_string())
     });
 }

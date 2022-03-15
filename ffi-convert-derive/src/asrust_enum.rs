@@ -22,18 +22,27 @@ pub fn impl_asrust_enum_macro(input: &syn::DeriveInput) -> TokenStream {
                 let case_name = case.case_name.clone().expect("Non default variant should have a case name");
 
                 if let Some(pointee) = pointee {
-                    let conversion = quote!({
-                    let ref_to_struct = unsafe { #pointee::raw_borrow(data as *const _)? };
-                    let converted_struct = ref_to_struct.as_rust()?;
-                    converted_struct
-                });
+                    let ty = pointee.ty.clone();
 
-                    quote!(
-                    #enum_name::#name => Ok(#target_type::#case_name(#conversion))
+                    let conversion = if pointee.is_string {
+                        quote!({
+                            use ffi_convert::AsRust;
+                            use ffi_convert::RawBorrow;
+                            unsafe { std::ffi::CStr::raw_borrow(data as *const libc::c_char)? }.as_rust()?
+                        })
+                    } else {
+                        quote!({
+                            use ffi_convert::AsRust;
+                            let ref_to_struct = unsafe { #ty::raw_borrow(data as *const _)?};
+                            let converted_struct = ref_to_struct.as_rust()?;
+                            converted_struct
+                        })
+                    };
+
+                    quote!(#enum_name::#name => Ok(#target_type::#case_name(#conversion))
                 )
                 } else {
-                    quote!(
-                    #enum_name::#name => Ok(#target_type::#case_name)
+                    quote!(#enum_name::#name => Ok(#target_type::#case_name)
                 )
                 }
             }

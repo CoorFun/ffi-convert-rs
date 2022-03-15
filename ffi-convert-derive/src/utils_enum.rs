@@ -10,10 +10,16 @@ pub fn parse_enum_cases(data: &syn::Data) -> Vec<Variant> {
 }
 
 #[derive(Clone)]
+pub struct Pointee {
+    pub ty: syn::TypePath,
+    pub is_string: bool
+}
+
+#[derive(Clone)]
 pub struct Variant<'a> {
     pub name: &'a syn::Ident,
     pub case_name: Option<syn::Ident>,
-    pub pointee: Option<syn::TypePath>,
+    pub pointee: Option<Pointee>,
     pub is_default: bool,
 }
 
@@ -28,7 +34,7 @@ pub fn parse_variant(data: &syn::Variant) -> Variant {
                 .expect("Could not parse attributes of case")
         });
 
-    let pointee = data
+    let pointee_ty: Option<syn::TypePath> = data
         .attrs
         .iter()
         .find(|attr| attr.path.get_ident().map(|it| it.to_string()) == Some("pointee".into()))
@@ -36,6 +42,21 @@ pub fn parse_variant(data: &syn::Variant) -> Variant {
             attr.parse_args()
                 .expect("Could not parse attributes of pointee")
         });
+
+    let pointee = if let Some(v) = pointee_ty {
+        let is_string = if let Some(segment) = v.path.segments.last() {
+            &segment.ident.to_string() == "c_char"
+        } else {
+            false
+        };
+
+        Some(Pointee {
+            ty: v,
+            is_string
+        })
+    } else {
+        None
+    };
 
     let is_default = data
         .attrs

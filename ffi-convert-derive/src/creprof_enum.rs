@@ -25,9 +25,17 @@ pub fn impl_creprof_enum_macro(input: &syn::DeriveInput) -> TokenStream {
             let case_name = case.case_name.clone().expect("Non default variant should have a case name");
 
             if let Some(pointee) = pointee {
-                quote!(
-                    #target_type::#case_name(v) => (#enum_name::#name, #pointee::c_repr_of(v)?.into_raw_pointer() as *const _)
-                )
+                let ty = pointee.ty.clone();
+
+                if pointee.is_string {
+                    quote!(
+                       #target_type::#case_name(v) => (#enum_name::#name, std::ffi::CString::c_repr_of(v)?.into_raw_pointer() as *const _)
+                    )
+                } else {
+                    quote!(
+                       #target_type::#case_name(v) => (#enum_name::#name, #ty::c_repr_of(v)?.into_raw_pointer() as *const _)
+                    )
+                }
             } else {
                 quote!(
                     #target_type::#case_name => (#enum_name::#name, std::ptr::null() as *const _)
