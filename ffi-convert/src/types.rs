@@ -268,8 +268,8 @@ impl<T> Drop for CRange<T> {
 
 #[derive(Debug)]
 pub struct CEnum<T> {
-    ty: T,
-    data: *const libc::c_void
+    pub ty: T,
+    pub data: *const libc::c_void
 }
 
 impl<U: AsRustEnum<V>, V> AsRust<V> for CEnum<U> {
